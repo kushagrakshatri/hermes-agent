@@ -18,9 +18,11 @@ import json
 import logging
 import os
 import re
+import shutil
 import shlex
 import sys
 import signal
+import subprocess
 import tempfile
 import threading
 import time
@@ -10712,6 +10714,47 @@ def _start_cron_ticker(stop_event: threading.Event, adapters=None, loop=None, in
     logger.info("Cron ticker stopped")
 
 
+def _start_macos_sleep_prevention() -> Optional[subprocess.Popen]:
+    """Prevent macOS idle sleep while the gateway process is alive."""
+    if sys.platform != "darwin":
+        return None
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return None
+
+    setting = os.getenv("HERMES_GATEWAY_PREVENT_SLEEP", "true").strip().lower()
+    if setting in {"0", "false", "no", "off"}:
+        logger.info("macOS gateway sleep prevention disabled by HERMES_GATEWAY_PREVENT_SLEEP")
+        return None
+
+    caffeinate = shutil.which("caffeinate")
+    if not caffeinate:
+        logger.warning("macOS gateway sleep prevention unavailable: caffeinate not found")
+        return None
+
+    try:
+        proc = subprocess.Popen(
+            [caffeinate, "-dimsu", "-w", str(os.getpid())],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception as e:
+        logger.warning("Failed to start macOS gateway sleep prevention: %s", e)
+        return None
+
+    logger.info("macOS gateway sleep prevention active via caffeinate (PID %d)", proc.pid)
+    return proc
+
+
+def _stop_macos_sleep_prevention(proc: Optional[subprocess.Popen]) -> None:
+    if proc is None or proc.poll() is not None:
+        return
+    proc.terminate()
+    try:
+        proc.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+
+
 async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = False, verbosity: Optional[int] = 0) -> bool:
     """
     Start the gateway and run until interrupted.
@@ -10941,6 +10984,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     
     # Start background cron ticker so scheduled jobs fire automatically.
     # Pass the event loop so cron delivery can use live adapters (E2EE support).
+    sleep_prevention_proc = _start_macos_sleep_prevention()
     cron_stop = threading.Event()
     cron_thread = threading.Thread(
         target=_start_cron_ticker,
@@ -10955,6 +10999,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     await runner.wait_for_shutdown()
 
     if runner.should_exit_with_failure:
+        _stop_macos_sleep_prevention(sleep_prevention_proc)
         if runner.exit_reason:
             logger.error("Gateway exiting with failure: %s", runner.exit_reason)
         return False
@@ -10962,6 +11007,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     # Stop cron ticker cleanly
     cron_stop.set()
     cron_thread.join(timeout=5)
+    _stop_macos_sleep_prevention(sleep_prevention_proc)
 
     # Close MCP server connections
     try:
