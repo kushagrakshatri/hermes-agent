@@ -29,7 +29,7 @@ def test_list_authenticated_providers_includes_full_models_list_from_user_provid
             "default_model": "minimax-m2.7:cloud",
             "models": [
                 "minimax-m2.7:cloud",
-                "kimi-k2.5:cloud",
+                "kimi-k2.6:cloud",
                 "glm-5.1:cloud",
                 "qwen3.5:cloud",
             ],
@@ -52,7 +52,7 @@ def test_list_authenticated_providers_includes_full_models_list_from_user_provid
     assert user_prov is not None, "User provider 'local-ollama' should be in results"
     assert user_prov["total_models"] == 4, f"Expected 4 models, got {user_prov['total_models']}"
     assert "minimax-m2.7:cloud" in user_prov["models"]
-    assert "kimi-k2.5:cloud" in user_prov["models"]
+    assert "kimi-k2.6:cloud" in user_prov["models"]
     assert "glm-5.1:cloud" in user_prov["models"]
     assert "qwen3.5:cloud" in user_prov["models"]
 
@@ -104,7 +104,7 @@ def test_list_authenticated_providers_enumerates_dict_format_models(monkeypatch)
             "default_model": "minimax-m2.7:cloud",
             "models": {
                 "minimax-m2.7:cloud": {"context_length": 196608},
-                "kimi-k2.5:cloud": {"context_length": 200000},
+                "kimi-k2.6:cloud": {"context_length": 200000},
                 "glm-5.1:cloud": {"context_length": 202752},
             },
         }
@@ -126,7 +126,7 @@ def test_list_authenticated_providers_enumerates_dict_format_models(monkeypatch)
     assert user_prov["total_models"] == 3
     assert user_prov["models"] == [
         "minimax-m2.7:cloud",
-        "kimi-k2.5:cloud",
+        "kimi-k2.6:cloud",
         "glm-5.1:cloud",
     ]
 
@@ -504,7 +504,7 @@ def test_switch_model_resolves_user_provider_credentials(monkeypatch, tmp_path):
     )
     
     result = switch_model(
-        raw_input="kimi-k2.5:cloud",
+        raw_input="kimi-k2.6:cloud",
         current_provider="local-ollama",
         current_model="minimax-m2.7:cloud",
         current_base_url="http://localhost:11434/v1",

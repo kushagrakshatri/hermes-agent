@@ -41,7 +41,7 @@ class TestSaveModelChoiceAlwaysDict:
         convert it to a dict so provider can be set afterwards."""
         from hermes_cli.auth import _save_model_choice
 
-        _save_model_choice("kimi-k2.5")
+        _save_model_choice("kimi-k2.6")
 
         import yaml
         config = yaml.safe_load((config_home / "config.yaml").read_text()) or {}
@@ -49,7 +49,7 @@ class TestSaveModelChoiceAlwaysDict:
         assert isinstance(model, dict), (
             f"Expected model to be a dict after save, got {type(model)}: {model}"
         )
-        assert model["default"] == "kimi-k2.5"
+        assert model["default"] == "kimi-k2.6"
 
     def test_dict_model_stays_dict(self, config_home):
         """When config.model is already a dict, _save_model_choice preserves it."""
@@ -84,9 +84,9 @@ class TestProviderPersistsAfterModelSave:
         from hermes_cli.main import _model_flow_api_key_provider
         from hermes_cli.config import load_config
 
-        # Mock the model selection prompt to return "kimi-k2.5"
+        # Mock the model selection prompt to return "kimi-k2.6"
         # Also mock input() for the base URL prompt and builtins.input
-        with patch("hermes_cli.auth._prompt_model_selection", return_value="kimi-k2.5"), \
+        with patch("hermes_cli.auth._prompt_model_selection", return_value="kimi-k2.6"), \
              patch("hermes_cli.auth.deactivate_provider"), \
              patch("builtins.input", return_value=""):
             _model_flow_api_key_provider(load_config(), "kimi-coding", "old-model")
@@ -98,7 +98,7 @@ class TestProviderPersistsAfterModelSave:
         assert model.get("provider") == "kimi-coding", (
             f"provider should be 'kimi-coding', got {model.get('provider')}"
         )
-        assert model.get("default") == "kimi-k2.5"
+        assert model.get("default") == "kimi-k2.6"
 
     def test_copilot_provider_saved_when_selected(self, config_home):
         """_model_flow_copilot should persist provider/base_url/model together."""
@@ -217,18 +217,18 @@ class TestProviderPersistsAfterModelSave:
 
         monkeypatch.setenv("OPENCODE_GO_API_KEY", "test-key")
 
-        with patch("hermes_cli.models.fetch_api_models", return_value=["opencode-go/kimi-k2.5", "opencode-go/minimax-m2.7"]), \
-             patch("hermes_cli.auth._prompt_model_selection", return_value="kimi-k2.5"), \
+        with patch("hermes_cli.models.fetch_api_models", return_value=["opencode-go/kimi-k2.6", "opencode-go/minimax-m2.7"]), \
+             patch("hermes_cli.auth._prompt_model_selection", return_value="kimi-k2.6"), \
              patch("hermes_cli.auth.deactivate_provider"), \
              patch("builtins.input", return_value=""):
-            _model_flow_api_key_provider(load_config(), "opencode-go", "opencode-go/kimi-k2.5")
+            _model_flow_api_key_provider(load_config(), "opencode-go", "opencode-go/kimi-k2.6")
 
         import yaml
         config = yaml.safe_load((config_home / "config.yaml").read_text()) or {}
         model = config.get("model")
         assert isinstance(model, dict)
         assert model.get("provider") == "opencode-go"
-        assert model.get("default") == "kimi-k2.5"
+        assert model.get("default") == "kimi-k2.6"
         assert model.get("api_mode") == "chat_completions"
 
     def test_opencode_go_same_provider_switch_recomputes_api_mode(self, config_home, monkeypatch):
@@ -238,17 +238,17 @@ class TestProviderPersistsAfterModelSave:
         monkeypatch.setenv("OPENCODE_GO_API_KEY", "test-key")
         (config_home / "config.yaml").write_text(
             "model:\n"
-            "  default: kimi-k2.5\n"
+            "  default: kimi-k2.6\n"
             "  provider: opencode-go\n"
             "  base_url: https://opencode.ai/zen/go/v1\n"
             "  api_mode: chat_completions\n"
         )
 
-        with patch("hermes_cli.models.fetch_api_models", return_value=["opencode-go/kimi-k2.5", "opencode-go/minimax-m2.5"]), \
+        with patch("hermes_cli.models.fetch_api_models", return_value=["opencode-go/kimi-k2.6", "opencode-go/minimax-m2.5"]), \
              patch("hermes_cli.auth._prompt_model_selection", return_value="minimax-m2.5"), \
              patch("hermes_cli.auth.deactivate_provider"), \
              patch("builtins.input", return_value=""):
-            _model_flow_api_key_provider(load_config(), "opencode-go", "kimi-k2.5")
+            _model_flow_api_key_provider(load_config(), "opencode-go", "kimi-k2.6")
 
         import yaml
         config = yaml.safe_load((config_home / "config.yaml").read_text()) or {}

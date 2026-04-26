@@ -120,20 +120,20 @@ class TestDirectAliases:
         assert alias == "glm"
 
     def test_reverse_lookup_by_model_id(self, monkeypatch):
-        """Full model names (e.g. 'kimi-k2.5') match via reverse lookup."""
+        """Full model names (e.g. 'kimi-k2.6') match via reverse lookup."""
         from hermes_cli.model_switch import DirectAlias, resolve_alias
         import hermes_cli.model_switch as ms
 
         test_aliases = {
-            "kimi": DirectAlias("kimi-k2.5", "custom", "https://ollama.com/v1"),
+            "kimi": DirectAlias("kimi-k2.6", "custom", "https://ollama.com/v1"),
         }
         monkeypatch.setattr(ms, "DIRECT_ALIASES", test_aliases)
 
         # Typing full model name should resolve through the alias
-        result = resolve_alias("kimi-k2.5", "openrouter")
+        result = resolve_alias("kimi-k2.6", "openrouter")
         assert result is not None
         provider, model, alias = result
-        assert model == "kimi-k2.5"
+        assert model == "kimi-k2.6"
         assert provider == "custom"
         assert alias == "kimi"
 

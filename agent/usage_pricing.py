@@ -502,7 +502,8 @@ def normalize_usage(
     Handles three API shapes:
     - Anthropic: input_tokens/output_tokens/cache_read_input_tokens/cache_creation_input_tokens
     - Codex Responses: input_tokens includes cache tokens; input_tokens_details.cached_tokens separates them
-    - OpenAI Chat Completions: prompt_tokens includes cache tokens; prompt_tokens_details.cached_tokens separates them
+    - OpenAI Chat Completions: prompt_tokens includes cache tokens; prompt_tokens_details.cached_tokens separates them.
+      Kimi may also expose cached_tokens at the top level of usage.
 
     In both Codex and OpenAI modes, input_tokens is derived by subtracting cache
     tokens from the total — the API contract is that input/prompt totals include
@@ -533,6 +534,8 @@ def normalize_usage(
         output_tokens = _to_int(getattr(response_usage, "completion_tokens", 0))
         details = getattr(response_usage, "prompt_tokens_details", None)
         cache_read_tokens = _to_int(getattr(details, "cached_tokens", 0) if details else 0)
+        if not cache_read_tokens:
+            cache_read_tokens = _to_int(getattr(response_usage, "cached_tokens", 0))
         cache_write_tokens = _to_int(
             getattr(details, "cache_write_tokens", 0) if details else 0
         )

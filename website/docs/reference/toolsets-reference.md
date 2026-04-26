@@ -52,7 +52,7 @@ Or in-session:
 
 | Toolset | Tools | Purpose |
 |---------|-------|---------|
-| `browser` | `browser_back`, `browser_cdp`, `browser_click`, `browser_console`, `browser_get_images`, `browser_navigate`, `browser_press`, `browser_scroll`, `browser_snapshot`, `browser_type`, `browser_vision`, `web_search` | Full browser automation. Includes `web_search` as a fallback for quick lookups. `browser_cdp` is a raw CDP passthrough gated on a reachable CDP endpoint — it only appears when `/browser connect` is active or `browser.cdp_url` is set. |
+| `browser` | `browser_back`, `browser_cdp`, `browser_click`, `browser_console`, `browser_get_images`, `browser_list_tabs`, `browser_navigate`, `browser_press`, `browser_scroll`, `browser_snapshot`, `browser_switch_tab`, `browser_type`, `browser_vision`, `web_search` | Full browser automation. Includes `web_search` as a fallback for quick lookups. In live-Chrome CDP mode, `browser_list_tabs` / `browser_switch_tab` help the agent reuse already-open logged-in tabs before navigating. `browser_cdp` is a raw CDP passthrough gated on a reachable CDP endpoint — it only appears when `/browser connect` is active or `browser.cdp_url` is set. |
 | `clarify` | `clarify` | Ask the user a question when the agent needs clarification. |
 | `code_execution` | `execute_code` | Run Python scripts that call Hermes tools programmatically. |
 | `cronjob` | `cronjob` | Schedule and manage recurring tasks. |
@@ -64,6 +64,7 @@ Or in-session:
 | `image_gen` | `image_generate` | Text-to-image generation via FAL.ai. |
 | `memory` | `memory` | Persistent cross-session memory management. |
 | `messaging` | `send_message` | Send messages to other platforms (Telegram, Discord, etc.) from within a session. |
+| `mirofish` | `mirofish_build_graph`, `mirofish_close_env`, `mirofish_generate_report`, `mirofish_get_report`, `mirofish_interview_agents`, `mirofish_prepare_simulation`, `mirofish_run_simulation`, `mirofish_simulation_status` | Optional MiroFish graph-backed simulation, interview, and report tools. Requires a running MiroFish backend configured with `MIROFISH_BASE_URL` or `twin.json`. |
 | `moa` | `mixture_of_agents` | Multi-model consensus via Mixture of Agents. |
 | `rl` | `rl_check_status`, `rl_edit_config`, `rl_get_current_config`, `rl_get_results`, `rl_list_environments`, `rl_list_runs`, `rl_select_environment`, `rl_start_training`, `rl_stop_training`, `rl_test_inference` | RL training environment management (Atropos). |
 | `search` | `web_search` | Web search only (without extract). |
@@ -90,7 +91,7 @@ Platform toolsets define the complete tool configuration for a deployment target
 
 | Toolset | Differences from `hermes-cli` |
 |---------|-------------------------------|
-| `hermes-cli` | Full toolset — all 36 core tools including `clarify`. The default for interactive CLI sessions. |
+| `hermes-cli` | Full toolset — all 38 core tools including `clarify`. The default for interactive CLI sessions. |
 | `hermes-acp` | Drops `clarify`, `cronjob`, `image_generate`, `send_message`, `text_to_speech`, homeassistant tools. Focused on coding tasks in IDE context. |
 | `hermes-api-server` | Drops `clarify`, `send_message`, and `text_to_speech`. Adds everything else — suitable for programmatic access where user interaction isn't possible. |
 | `hermes-telegram` | Same as `hermes-cli`. |

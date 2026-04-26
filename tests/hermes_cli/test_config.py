@@ -574,7 +574,7 @@ class TestCustomProviderCompatibility:
                     "custom_providers": [
                         {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "qwen3-coder"},
                         {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "glm-5.1"},
-                        {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "kimi-k2.5"},
+                        {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "kimi-k2.6"},
                     ],
                 }
             ),
@@ -586,7 +586,7 @@ class TestCustomProviderCompatibility:
 
         assert len(compatible) == 3
         models = [e.get("model") for e in compatible]
-        assert models == ["qwen3-coder", "glm-5.1", "kimi-k2.5"]
+        assert models == ["qwen3-coder", "glm-5.1", "kimi-k2.6"]
 
 
 class TestInterimAssistantMessageConfig:

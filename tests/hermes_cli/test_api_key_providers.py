@@ -924,7 +924,7 @@ class TestKimiMoonshotModelListIsolation:
     def test_moonshot_list_contains_shared_models(self):
         from hermes_cli.main import _PROVIDER_MODELS
         moonshot_models = _PROVIDER_MODELS["moonshot"]
-        assert "kimi-k2.5" in moonshot_models
+        assert "kimi-k2.6" in moonshot_models
         assert "kimi-k2-thinking" in moonshot_models
 
     def test_coding_plan_list_contains_plan_specific_models(self):

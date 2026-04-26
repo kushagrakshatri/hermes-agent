@@ -1129,7 +1129,7 @@ def test_model_options_does_not_overwrite_curated_models(monkeypatch):
         {
             "slug": "nous",
             "name": "Nous",
-            "models": ["moonshotai/kimi-k2.5", "anthropic/claude-opus-4.7"],
+            "models": ["moonshotai/kimi-k2.6", "anthropic/claude-opus-4.7"],
             "total_models": 30,
             "source": "built-in",
             "is_current": False,
@@ -1158,7 +1158,7 @@ def test_model_options_does_not_overwrite_curated_models(monkeypatch):
     nous = next((p for p in providers if p.get("slug") == "nous"), None)
     assert nous is not None
     assert nous["models"] == [
-        "moonshotai/kimi-k2.5",
+        "moonshotai/kimi-k2.6",
         "anthropic/claude-opus-4.7",
     ]
     assert nous["total_models"] == 30

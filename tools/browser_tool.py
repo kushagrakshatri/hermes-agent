@@ -2234,7 +2234,10 @@ def cleanup_browser(task_id: Optional[str] = None) -> None:
     Clean up browser session for a task.
     
     Called automatically when a task completes or when inactivity timeout is reached.
-    Closes both the agent-browser/Browserbase session and Camofox sessions.
+    Closes managed browser sessions and Camofox sessions. When Hermes is attached
+    to the user's own Chrome via a CDP override (``/browser connect`` or
+    ``browser.cdp_url``), cleanup is soft: Hermes drops its tracking and helper
+    daemon state without asking the browser backend to close the user's tab/window.
     
     Args:
         task_id: Task identifier to clean up
@@ -2265,16 +2268,28 @@ def cleanup_browser(task_id: Optional[str] = None) -> None:
     if session_info:
         bb_session_id = session_info.get("bb_session_id", "unknown")
         logger.debug("Found session for task %s: bb_session_id=%s", task_id, bb_session_id)
+        features = session_info.get("features") or {}
+        is_user_owned_cdp_session = bool(
+            isinstance(features, dict) and features.get("cdp_override")
+        )
         
         # Stop auto-recording before closing (saves the file)
         _maybe_stop_recording(task_id)
         
-        # Try to close via agent-browser first (needs session in _active_sessions)
-        try:
-            _run_browser_command(task_id, "close", [], timeout=10)
-            logger.debug("agent-browser close command completed for task %s", task_id)
-        except Exception as e:
-            logger.warning("agent-browser close failed for task %s: %s", task_id, e)
+        # For the user's live Chrome via CDP, only detach Hermes state.
+        # Sending "close" here risks closing a user-owned tab/window between turns.
+        if is_user_owned_cdp_session:
+            logger.debug(
+                "Skipping browser close for task %s because session is a live CDP override",
+                task_id,
+            )
+        else:
+            # Try to close via agent-browser first (needs session in _active_sessions)
+            try:
+                _run_browser_command(task_id, "close", [], timeout=10)
+                logger.debug("agent-browser close command completed for task %s", task_id)
+            except Exception as e:
+                logger.warning("agent-browser close failed for task %s: %s", task_id, e)
         
         # Now remove from tracking under lock
         with _cleanup_lock:

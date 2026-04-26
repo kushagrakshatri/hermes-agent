@@ -116,7 +116,7 @@ def test_list_groups_same_name_custom_providers_into_one_row(monkeypatch):
         custom_providers=[
             {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "qwen3-coder:480b-cloud"},
             {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "glm-5.1:cloud"},
-            {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "kimi-k2.5"},
+            {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "kimi-k2.6"},
             {"name": "Ollama Cloud", "base_url": "https://ollama.com/v1", "model": "minimax-m2.7:cloud"},
             {"name": "Moonshot", "base_url": "https://api.moonshot.ai/v1", "model": "kimi-k2-thinking"},
         ],
@@ -126,7 +126,7 @@ def test_list_groups_same_name_custom_providers_into_one_row(monkeypatch):
     ollama_rows = [p for p in providers if p["name"] == "Ollama Cloud"]
     assert len(ollama_rows) == 1, f"Expected 1 Ollama Cloud row, got {len(ollama_rows)}"
     assert ollama_rows[0]["models"] == [
-        "qwen3-coder:480b-cloud", "glm-5.1:cloud", "kimi-k2.5", "minimax-m2.7:cloud"
+        "qwen3-coder:480b-cloud", "glm-5.1:cloud", "kimi-k2.6", "minimax-m2.7:cloud"
     ]
     assert ollama_rows[0]["total_models"] == 4
 

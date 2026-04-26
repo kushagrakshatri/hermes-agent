@@ -80,6 +80,7 @@ from hermes_constants import OPENROUTER_BASE_URL
 
 # Agent internals extracted to agent/ package for modularity
 from agent.memory_manager import build_memory_context_block, sanitize_context
+from agent.personal_evolution import PersonalEvolutionStore, load_config as load_evolution_config
 from agent.retry_utils import jittered_backoff
 from agent.error_classifier import classify_api_error, FailoverReason
 from agent.prompt_builder import (
@@ -1052,6 +1053,7 @@ class AIAgent:
         self._use_prompt_caching, self._use_native_cache_layout = (
             self._anthropic_prompt_cache_policy()
         )
+        self._use_prompt_cache_key = self._prompt_cache_key_policy()
         self._cache_ttl = "5m"  # Default 5-minute TTL (1.25x write cost)
         
         # Iteration budget: the LLM is only notified when it actually exhausts
@@ -1386,14 +1388,21 @@ class AIAgent:
             print(f"🔒 Ephemeral system prompt: '{prompt_preview}' (not saved to trajectories)")
         
         # Show prompt caching status
-        if self._use_prompt_caching and not self.quiet_mode:
-            if self._use_native_cache_layout and self.provider == "anthropic":
-                source = "native Anthropic"
-            elif self._use_native_cache_layout:
-                source = "Anthropic-compatible endpoint"
-            else:
-                source = "Claude via OpenRouter"
-            print(f"💾 Prompt caching: ENABLED ({source}, {self._cache_ttl} TTL)")
+        if not self.quiet_mode:
+            cache_status = None
+            if self._use_prompt_caching:
+                if self._use_native_cache_layout and self.provider == "anthropic":
+                    source = "native Anthropic"
+                elif self._use_native_cache_layout:
+                    source = "Anthropic-compatible endpoint"
+                else:
+                    source = "Claude via OpenRouter"
+                cache_status = f"{source}, {self._cache_ttl} TTL"
+            elif self._use_prompt_cache_key and self.session_id:
+                cache_status = "Kimi prompt_cache_key"
+
+            if cache_status:
+                print(f"💾 Prompt caching: ENABLED ({cache_status})")
         
         # Session logging setup - auto-save conversation trajectories for debugging
         self.session_start = datetime.now()
@@ -1473,6 +1482,8 @@ class AIAgent:
         self._memory_store = None
         self._memory_enabled = False
         self._user_profile_enabled = False
+        self._personal_evolution_store = None
+        self._personal_evolution_enabled = False
         self._memory_nudge_interval = 10
         self._memory_flush_min_turns = 6
         self._turns_since_memory = 0
@@ -1493,6 +1504,16 @@ class AIAgent:
                     self._memory_store.load_from_disk()
             except Exception:
                 pass  # Memory is optional -- don't break agent init
+
+        # Personal evolution: aggressive Evolver-style behavioral gene loop.
+        if not skip_memory:
+            try:
+                evolution_config = load_evolution_config(_agent_cfg.get("personal_evolution", {}))
+                self._personal_evolution_enabled = evolution_config.enabled
+                if evolution_config.enabled:
+                    self._personal_evolution_store = PersonalEvolutionStore(evolution_config)
+            except Exception as exc:
+                logger.debug("Personal evolution init failed: %s", exc)
         
 
 
@@ -1867,6 +1888,7 @@ class AIAgent:
             "client_kwargs": dict(self._client_kwargs),
             "use_prompt_caching": self._use_prompt_caching,
             "use_native_cache_layout": self._use_native_cache_layout,
+            "use_prompt_cache_key": self._use_prompt_cache_key,
             # Context engine state that _try_activate_fallback() overwrites.
             # Use getattr for model/base_url/api_key/provider since plugin
             # engines may not have these (they're ContextCompressor-specific).
@@ -2016,6 +2038,11 @@ class AIAgent:
                 model=new_model,
             )
         )
+        self._use_prompt_cache_key = self._prompt_cache_key_policy(
+            provider=new_provider,
+            base_url=self.base_url,
+            api_mode=api_mode,
+        )
 
         # ── Update context compressor ──
         if hasattr(self, "context_compressor") and self.context_compressor:
@@ -2050,6 +2077,7 @@ class AIAgent:
             "client_kwargs": dict(self._client_kwargs),
             "use_prompt_caching": self._use_prompt_caching,
             "use_native_cache_layout": self._use_native_cache_layout,
+            "use_prompt_cache_key": self._use_prompt_cache_key,
             "compressor_model": getattr(_cc, "model", self.model) if _cc else self.model,
             "compressor_base_url": getattr(_cc, "base_url", self.base_url) if _cc else self.base_url,
             "compressor_api_key": getattr(_cc, "api_key", "") if _cc else "",
@@ -2436,6 +2464,31 @@ class AIAgent:
             # Third-party Anthropic-compatible gateway.
             return True, True
         return False, False
+
+    def _prompt_cache_key_policy(
+        self,
+        *,
+        provider: Optional[str] = None,
+        base_url: Optional[str] = None,
+        api_mode: Optional[str] = None,
+    ) -> bool:
+        """Return True when this route should send a stable prompt_cache_key."""
+        eff_provider = (provider if provider is not None else self.provider) or ""
+        eff_base_url = base_url if base_url is not None else (self.base_url or "")
+        eff_api_mode = api_mode if api_mode is not None else (self.api_mode or "")
+
+        if eff_api_mode != "chat_completions":
+            return False
+
+        if eff_provider in {"kimi-coding", "kimi-coding-cn"}:
+            return True
+
+        base_lower = eff_base_url.lower()
+        return (
+            "api.moonshot.ai" in base_lower
+            or "api.moonshot.cn" in base_lower
+            or "api.kimi.com" in base_lower
+        )
 
     @staticmethod
     def _model_requires_responses_api(model: str) -> bool:
@@ -6904,6 +6957,11 @@ class AIAgent:
                     model=fb_model,
                 )
             )
+            self._use_prompt_cache_key = self._prompt_cache_key_policy(
+                provider=fb_provider,
+                base_url=fb_base_url,
+                api_mode=fb_api_mode,
+            )
 
             # Update context compressor limits for the fallback model.
             # Without this, compression decisions use the primary model's
@@ -6967,6 +7025,14 @@ class AIAgent:
             self._use_native_cache_layout = rt.get(
                 "use_native_cache_layout",
                 self.api_mode == "anthropic_messages" and self.provider == "anthropic",
+            )
+            self._use_prompt_cache_key = rt.get(
+                "use_prompt_cache_key",
+                self._prompt_cache_key_policy(
+                    provider=self.provider,
+                    base_url=self.base_url,
+                    api_mode=self.api_mode,
+                ),
             )
 
             # ── Rebuild client for the primary provider ──
@@ -7632,6 +7698,9 @@ class AIAgent:
         # Nous Portal product attribution
         if _is_nous:
             extra_body["tags"] = ["product=hermes-agent"]
+
+        if self._use_prompt_cache_key and self.session_id:
+            extra_body["prompt_cache_key"] = self.session_id
 
         # Ollama num_ctx: override the 2048 default so the model actually
         # uses the context window it was trained for.  Passed via the OpenAI
@@ -9545,6 +9614,14 @@ class AIAgent:
             except Exception:
                 pass
 
+        _personal_evolution_context = ""
+        if self._personal_evolution_store:
+            try:
+                _query = original_user_message if isinstance(original_user_message, str) else ""
+                _personal_evolution_context = self._personal_evolution_store.select_context(_query) or ""
+            except Exception:
+                pass
+
         while (api_call_count < self.max_iterations and self.iteration_budget.remaining > 0) or self._budget_grace_call:
             # Reset per-turn checkpoint dedup so each iteration can take one snapshot
             self._checkpoint_mgr.new_turn()
@@ -9626,6 +9703,12 @@ class AIAgent:
                         _fenced = build_memory_context_block(_ext_prefetch_cache)
                         if _fenced:
                             _injections.append(_fenced)
+                    if _personal_evolution_context:
+                        _injections.append(
+                            "<personal_evolution>\n"
+                            + _personal_evolution_context
+                            + "\n</personal_evolution>"
+                        )
                     if _plugin_user_context:
                         _injections.append(_plugin_user_context)
                     if _injections:
@@ -9735,7 +9818,7 @@ class AIAgent:
                 am["tool_calls"] = new_tcs
 
             # Proactively strip any surrogate characters before the API call.
-            # Models served via Ollama (Kimi K2.5, GLM-5, Qwen) can return
+            # Models served via Ollama (Kimi K2.6, GLM-5, Qwen) can return
             # lone surrogates (U+D800-U+DFFF) that crash json.dumps() inside
             # the OpenAI SDK. Sanitizing here prevents the 3-retry cycle.
             _sanitize_messages_surrogates(api_messages)
@@ -10423,17 +10506,10 @@ class AIAgent:
                         if self.verbose_logging:
                             logging.debug(f"Token usage: prompt={usage_dict['prompt_tokens']:,}, completion={usage_dict['completion_tokens']:,}, total={usage_dict['total_tokens']:,}")
                         
-                        # Log cache hit stats when prompt caching is active
-                        if self._use_prompt_caching:
-                            if self.api_mode == "anthropic_messages":
-                                # Anthropic uses cache_read_input_tokens / cache_creation_input_tokens
-                                cached = getattr(response.usage, 'cache_read_input_tokens', 0) or 0
-                                written = getattr(response.usage, 'cache_creation_input_tokens', 0) or 0
-                            else:
-                                # OpenRouter uses prompt_tokens_details.cached_tokens
-                                details = getattr(response.usage, 'prompt_tokens_details', None)
-                                cached = getattr(details, 'cached_tokens', 0) or 0 if details else 0
-                                written = getattr(details, 'cache_write_tokens', 0) or 0 if details else 0
+                        # Log cache hit stats when prompt caching is active.
+                        if self._use_prompt_caching or (self._use_prompt_cache_key and self.session_id):
+                            cached = canonical_usage.cache_read_tokens
+                            written = canonical_usage.cache_write_tokens
                             prompt = usage_dict["prompt_tokens"]
                             hit_pct = (cached / prompt * 100) if prompt > 0 else 0
                             if not self.quiet_mode:
@@ -12349,6 +12425,37 @@ class AIAgent:
                 self._memory_manager.queue_prefetch_all(original_user_message)
             except Exception:
                 pass
+
+        if self._personal_evolution_store and final_response and original_user_message:
+            try:
+                _tool_names = []
+                for _msg in messages[current_turn_user_idx + 1:]:
+                    if _msg.get("role") == "assistant" and _msg.get("tool_calls"):
+                        for _tc in _msg.get("tool_calls") or []:
+                            _fn = (_tc.get("function") or {}).get("name") if isinstance(_tc, dict) else None
+                            if _fn:
+                                _tool_names.append(_fn)
+                _evolution_result = self._personal_evolution_store.evolve_turn(
+                    user_message=str(original_user_message),
+                    assistant_response=str(final_response),
+                    tool_names=_tool_names,
+                    session_id=self.session_id,
+                    platform=getattr(self, "platform", None) or "",
+                )
+                if _evolution_result.get("changed"):
+                    logger.info(
+                        "Personal evolution applied %d event(s)",
+                        len(_evolution_result.get("events", [])),
+                    )
+                elif _evolution_result.get("distiller_error"):
+                    logger.warning(
+                        "Personal evolution distillation failed: %s",
+                        _evolution_result.get("distiller_error"),
+                    )
+                else:
+                    logger.info("Personal evolution distiller produced no mutations")
+            except Exception as exc:
+                logger.exception("Personal evolution update failed: %s", exc)
 
         # Background memory/skill review — runs AFTER the response is delivered
         # so it never competes with the user's task for model attention.

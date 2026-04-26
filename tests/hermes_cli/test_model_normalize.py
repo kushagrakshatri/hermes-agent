@@ -22,7 +22,7 @@ class TestIssue5211OpenCodeGoDotPreservation:
         ("minimax-m2.7", "minimax-m2.7"),
         ("minimax-m2.5", "minimax-m2.5"),
         ("glm-4.5", "glm-4.5"),
-        ("kimi-k2.5", "kimi-k2.5"),
+        ("kimi-k2.6", "kimi-k2.6"),
         ("some-model-1.0.3", "some-model-1.0.3"),
     ])
     def test_opencode_go_preserves_dots(self, model, expected):
@@ -64,7 +64,7 @@ class TestOpenCodeZenModelNormalization:
         ("glm-5.1", "glm-5.1"),
         ("gpt-5.4", "gpt-5.4"),
         ("minimax-m2.5-free", "minimax-m2.5-free"),
-        ("kimi-k2.5", "kimi-k2.5"),
+        ("kimi-k2.6", "kimi-k2.6"),
     ])
     def test_zen_normalizes_models(self, model, expected):
         result = normalize_model_for_provider(model, "opencode-zen")
@@ -168,7 +168,7 @@ class TestIssue6211NativeProviderPrefixNormalization:
     @pytest.mark.parametrize("model,target_provider,expected", [
         ("zai/glm-5.1", "zai", "glm-5.1"),
         ("google/gemini-2.5-pro", "gemini", "google/gemini-2.5-pro"),
-        ("moonshot/kimi-k2.5", "kimi-coding", "kimi-k2.5"),
+        ("moonshot/kimi-k2.6", "kimi-coding", "kimi-k2.6"),
         ("anthropic/claude-sonnet-4.6", "openrouter", "anthropic/claude-sonnet-4.6"),
         ("Qwen/Qwen3.5-397B-A17B", "huggingface", "Qwen/Qwen3.5-397B-A17B"),
         ("modal/zai-org/GLM-5-FP8", "custom", "modal/zai-org/GLM-5-FP8"),
@@ -187,7 +187,7 @@ class TestDetectVendor:
         ("gpt-5.4-mini", "openai"),
         ("minimax-m2.7", "minimax"),
         ("glm-4.5", "z-ai"),
-        ("kimi-k2.5", "moonshotai"),
+        ("kimi-k2.6", "moonshotai"),
     ])
     def test_detects_known_vendors(self, model, expected):
         assert detect_vendor(model) == expected

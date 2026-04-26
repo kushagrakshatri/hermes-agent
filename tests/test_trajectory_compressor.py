@@ -54,9 +54,9 @@ def test_generate_summary_custom_client_forces_kimi_temperature():
     assert compressor.client.chat.completions.create.call_args.kwargs["temperature"] == 0.6
 
 
-def test_generate_summary_public_moonshot_kimi_k2_5_forces_temperature_1():
+def test_generate_summary_public_moonshot_kimi_k2_6_forces_temperature_1():
     config = CompressionConfig(
-        summarization_model="kimi-k2.5",
+        summarization_model="kimi-k2.6",
         base_url="https://api.moonshot.ai/v1",
         temperature=0.3,
         summary_target_tokens=100,
@@ -78,9 +78,9 @@ def test_generate_summary_public_moonshot_kimi_k2_5_forces_temperature_1():
     assert compressor.client.chat.completions.create.call_args.kwargs["temperature"] == 1.0
 
 
-def test_generate_summary_public_moonshot_cn_kimi_k2_5_forces_temperature_1():
+def test_generate_summary_public_moonshot_cn_kimi_k2_6_forces_temperature_1():
     config = CompressionConfig(
-        summarization_model="kimi-k2.5",
+        summarization_model="kimi-k2.6",
         base_url="https://api.moonshot.cn/v1",
         temperature=0.3,
         summary_target_tokens=100,

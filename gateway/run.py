@@ -3539,6 +3539,9 @@ class GatewayRunner:
         if canonical == "reload-mcp":
             return await self._handle_reload_mcp_command(event)
 
+        if canonical == "evolution":
+            return await self._handle_evolution_command(event)
+
         if canonical == "approve":
             return await self._handle_approve_command(event)
 
@@ -7433,6 +7436,17 @@ class GatewayRunner:
         except Exception as e:
             logger.warning("MCP reload failed: %s", e)
             return f"❌ MCP reload failed: {e}"
+
+    async def _handle_evolution_command(self, event: MessageEvent) -> str:
+        """Handle /evolution command for messaging platforms."""
+        loop = asyncio.get_running_loop()
+        command = event.text or "/evolution"
+
+        def _run() -> str:
+            from agent.personal_evolution import handle_evolution_command
+            return handle_evolution_command(command)
+
+        return await loop.run_in_executor(None, _run)
 
     # ------------------------------------------------------------------
     # /approve & /deny — explicit dangerous-command approval

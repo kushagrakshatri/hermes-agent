@@ -918,30 +918,30 @@ class TestBuildApiKwargs:
         assert kwargs["messages"] is messages
         assert kwargs["timeout"] == 1800.0
 
-    def test_public_moonshot_kimi_k2_5_forces_temperature_1(self, agent):
+    def test_public_moonshot_kimi_k2_6_forces_temperature_1(self, agent):
         agent.base_url = "https://api.moonshot.ai/v1"
         agent._base_url_lower = agent.base_url.lower()
-        agent.model = "kimi-k2.5"
+        agent.model = "kimi-k2.6"
         messages = [{"role": "user", "content": "hi"}]
 
         kwargs = agent._build_api_kwargs(messages)
 
         assert kwargs["temperature"] == 1.0
 
-    def test_public_moonshot_cn_kimi_k2_5_forces_temperature_1(self, agent):
+    def test_public_moonshot_cn_kimi_k2_6_forces_temperature_1(self, agent):
         agent.base_url = "https://api.moonshot.cn/v1"
         agent._base_url_lower = agent.base_url.lower()
-        agent.model = "kimi-k2.5"
+        agent.model = "kimi-k2.6"
         messages = [{"role": "user", "content": "hi"}]
 
         kwargs = agent._build_api_kwargs(messages)
 
         assert kwargs["temperature"] == 1.0
 
-    def test_kimi_coding_endpoint_keeps_kimi_k2_5_at_0_6(self, agent):
+    def test_kimi_coding_endpoint_keeps_kimi_k2_6_at_0_6(self, agent):
         agent.base_url = "https://api.kimi.com/coding/v1"
         agent._base_url_lower = agent.base_url.lower()
-        agent.model = "kimi-k2.5"
+        agent.model = "kimi-k2.6"
         messages = [{"role": "user", "content": "hi"}]
 
         kwargs = agent._build_api_kwargs(messages)

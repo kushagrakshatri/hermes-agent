@@ -43,6 +43,7 @@ _HERMES_CORE_TOOLS = [
     "browser_navigate", "browser_snapshot", "browser_click",
     "browser_type", "browser_scroll", "browser_back",
     "browser_press", "browser_get_images",
+    "browser_list_tabs", "browser_switch_tab",
     "browser_vision", "browser_console", "browser_cdp",
     # Text-to-speech
     "text_to_speech",
@@ -102,6 +103,22 @@ TOOLSETS = {
         "tools": ["mixture_of_agents"],
         "includes": []
     },
+
+    "mirofish": {
+        "description": "MiroFish graph-backed simulation, interview, and report tools",
+        "tools": [
+            "mirofish_simulate_decision",
+            "mirofish_build_graph",
+            "mirofish_prepare_simulation",
+            "mirofish_run_simulation",
+            "mirofish_simulation_status",
+            "mirofish_generate_report",
+            "mirofish_get_report",
+            "mirofish_interview_agents",
+            "mirofish_close_env",
+        ],
+        "includes": []
+    },
     
     "skills": {
         "description": "Access, create, edit, and manage skill documents with specialized instructions and knowledge",
@@ -115,6 +132,7 @@ TOOLSETS = {
             "browser_navigate", "browser_snapshot", "browser_click",
             "browser_type", "browser_scroll", "browser_back",
             "browser_press", "browser_get_images",
+            "browser_list_tabs", "browser_switch_tab",
             "browser_vision", "browser_console", "browser_cdp", "web_search"
         ],
         "includes": []
@@ -249,6 +267,7 @@ TOOLSETS = {
             "browser_navigate", "browser_snapshot", "browser_click",
             "browser_type", "browser_scroll", "browser_back",
             "browser_press", "browser_get_images",
+            "browser_list_tabs", "browser_switch_tab",
             "browser_vision", "browser_console", "browser_cdp",
             "todo", "memory",
             "session_search",
@@ -274,6 +293,7 @@ TOOLSETS = {
             "browser_navigate", "browser_snapshot", "browser_click",
             "browser_type", "browser_scroll", "browser_back",
             "browser_press", "browser_get_images",
+            "browser_list_tabs", "browser_switch_tab",
             "browser_vision", "browser_console", "browser_cdp",
             # Planning & memory
             "todo", "memory",

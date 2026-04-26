@@ -28,7 +28,7 @@ def test_run_task_forces_kimi_fixed_temperature():
     assert client.chat.completions.create.call_args.kwargs["temperature"] == 0.6
 
 
-def test_run_task_public_moonshot_kimi_k2_5_forces_temperature_1():
+def test_run_task_public_moonshot_kimi_k2_6_forces_temperature_1():
     with patch("openai.OpenAI") as mock_openai:
         client = MagicMock()
         client.base_url = "https://api.moonshot.ai/v1"
@@ -40,7 +40,7 @@ def test_run_task_public_moonshot_kimi_k2_5_forces_temperature_1():
         from mini_swe_runner import MiniSWERunner
 
         runner = MiniSWERunner(
-            model="kimi-k2.5",
+            model="kimi-k2.6",
             base_url="https://api.moonshot.ai/v1",
             api_key="test-key",
             env_type="local",

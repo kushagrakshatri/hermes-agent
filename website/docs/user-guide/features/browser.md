@@ -305,6 +305,35 @@ Navigate back to the previous page in browser history.
 
 List all images on the current page with their URLs and alt text. Useful for finding images to analyze.
 
+### `browser_list_tabs`
+
+List open tabs in the connected live Chrome session.
+
+This is mainly for `/browser connect` workflows where the user may already have the right site open and logged in. It lets the agent inspect existing tabs before opening a new URL and potentially losing context.
+
+```
+List my open Chrome tabs first
+```
+
+The result includes a 1-based `index`, a stable `tab_id`, the current `title`, and the `url` for each page tab.
+
+### `browser_switch_tab`
+
+Activate one existing tab in the connected live Chrome session.
+
+You can switch by:
+
+- `index` from `browser_list_tabs`
+- exact `tab_id`
+- `title_contains`
+- `url_contains`
+
+```
+Switch to the tab whose title contains "GitHub"
+```
+
+After switching, use `browser_snapshot` or the other browser tools against the now-active tab.
+
 ### `browser_vision`
 
 Take a screenshot and analyze it with vision AI. Use this when text snapshots don't capture important visual information — especially useful for CAPTCHAs, complex layouts, or visual verification challenges.
@@ -383,6 +412,19 @@ Agent workflow:
 2. browser_snapshot(full=true)  → reads trending repo list
 3. Returns formatted results
 ```
+
+### Working In Your Existing Chrome
+
+When Hermes is attached to your live Chrome via `/browser connect`, the preferred flow is:
+
+```
+1. browser_list_tabs()
+2. browser_switch_tab(title_contains="Gmail")   # or index=..., url_contains=...
+3. browser_snapshot()
+4. browser_click(...) / browser_type(...) / browser_console(...)
+```
+
+This helps Hermes reuse your already-open, already-logged-in tabs instead of navigating away from them unnecessarily.
 
 ## Session Recording
 

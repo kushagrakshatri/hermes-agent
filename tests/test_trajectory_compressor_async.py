@@ -144,11 +144,11 @@ async def test_generate_summary_async_custom_client_forces_kimi_temperature():
 
 
 @pytest.mark.asyncio
-async def test_generate_summary_async_public_moonshot_kimi_k2_5_forces_temperature_1():
+async def test_generate_summary_async_public_moonshot_kimi_k2_6_forces_temperature_1():
     from trajectory_compressor import CompressionConfig, TrajectoryCompressor, TrajectoryMetrics
 
     config = CompressionConfig(
-        summarization_model="kimi-k2.5",
+        summarization_model="kimi-k2.6",
         base_url="https://api.moonshot.ai/v1",
         temperature=0.3,
         summary_target_tokens=100,
@@ -173,11 +173,11 @@ async def test_generate_summary_async_public_moonshot_kimi_k2_5_forces_temperatu
 
 
 @pytest.mark.asyncio
-async def test_generate_summary_async_public_moonshot_cn_kimi_k2_5_forces_temperature_1():
+async def test_generate_summary_async_public_moonshot_cn_kimi_k2_6_forces_temperature_1():
     from trajectory_compressor import CompressionConfig, TrajectoryCompressor, TrajectoryMetrics
 
     config = CompressionConfig(
-        summarization_model="kimi-k2.5",
+        summarization_model="kimi-k2.6",
         base_url="https://api.moonshot.cn/v1",
         temperature=0.3,
         summary_target_tokens=100,

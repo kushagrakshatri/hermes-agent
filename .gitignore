@@ -32,6 +32,7 @@ data/*
 node_modules/
 browser-use/
 agent-browser/
+chrome_profile/
 # Private keys
 *.ppk
 *.pem

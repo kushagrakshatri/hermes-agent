@@ -5902,6 +5902,9 @@ class HermesCLI:
         elif canonical == "skills":
             with self._busy_command(self._slow_command_status(cmd_original)):
                 self._handle_skills_command(cmd_original)
+        elif canonical == "evolution":
+            from agent.personal_evolution import handle_evolution_command
+            print(handle_evolution_command(cmd_original))
         elif canonical == "platforms":
             self._show_gateway_status()
         elif canonical == "status":
@@ -6543,17 +6546,16 @@ class HermesCLI:
             print(f"   Endpoint: {cdp_url}")
             print()
 
-            # Inject context message so the model knows
-            if hasattr(self, '_pending_input'):
-                self._pending_input.put(
-                    "[System note: The user has connected your browser tools to their live Chrome browser "
-                    "via Chrome DevTools Protocol. Your browser_navigate, browser_snapshot, browser_click, "
-                    "and other browser tools now control their real browser — including any pages they have "
-                    "open, logged-in sessions, and cookies. They likely opened specific sites or logged into "
-                    "services before connecting. Please await their instruction before attempting to operate "
-                    "the browser. When you do act, be mindful that your actions affect their real browser — "
-                    "don't close tabs or navigate away from pages without asking.]"
-                )
+            self._refresh_agent_tools(
+                "[SYSTEM: The user has connected your browser tools to their live Chrome browser "
+                "via Chrome DevTools Protocol. Your browser_navigate, browser_snapshot, browser_click, "
+                "browser_list_tabs, browser_switch_tab, and other browser tools now control their real browser — including any pages they have "
+                "open, logged-in sessions, and cookies. They likely opened specific sites or logged into "
+                "services before connecting. Prefer browser_list_tabs and browser_switch_tab before opening a new URL "
+                "when the task may already be visible in an existing tab. Please await their instruction before attempting to operate "
+                "the browser. When you do act, be mindful that your actions affect their real browser — "
+                "don't close tabs or navigate away from pages without asking.]"
+            )
 
         elif sub == "disconnect":
             if current:
@@ -6568,11 +6570,10 @@ class HermesCLI:
                 print("   Browser tools reverted to default mode (local headless or cloud provider)")
                 print()
 
-                if hasattr(self, '_pending_input'):
-                    self._pending_input.put(
-                        "[System note: The user has disconnected the browser tools from their live Chrome. "
-                        "Browser tools are back to default mode (headless local browser or cloud provider).]"
-                    )
+                self._refresh_agent_tools(
+                    "[SYSTEM: The user has disconnected the browser tools from their live Chrome. "
+                    "Browser tools are back to default mode (headless local browser or cloud provider).]"
+                )
             else:
                 print()
                 print("Browser is not connected to live Chrome (already using default mode)")
@@ -7166,6 +7167,35 @@ class HermesCLI:
 
         except Exception as e:
             print(f"  ❌ MCP reload failed: {e}")
+
+    def _refresh_agent_tools(self, history_note: str = None):
+        """Refresh the active agent's tool schema after explicit tool changes."""
+        if self.agent is not None:
+            self.agent.tools = get_tool_definitions(
+                enabled_toolsets=self.agent.enabled_toolsets
+                if hasattr(self.agent, "enabled_toolsets") else None,
+                disabled_toolsets=self.agent.disabled_toolsets
+                if hasattr(self.agent, "disabled_toolsets") else None,
+                quiet_mode=True,
+            )
+            self.agent.valid_tool_names = {
+                tool["function"]["name"] for tool in self.agent.tools
+            } if self.agent.tools else set()
+
+        if history_note:
+            self.conversation_history.append({
+                "role": "user",
+                "content": history_note,
+            })
+
+        if self.agent is not None:
+            try:
+                self.agent._persist_session(
+                    self.conversation_history,
+                    self.conversation_history,
+                )
+            except Exception:
+                pass  # Best-effort
 
     # ====================================================================
     # Tool-call generation indicator (shown during streaming)

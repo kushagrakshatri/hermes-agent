@@ -557,6 +557,14 @@ DEFAULT_CONFIG = {
             "timeout": 30,
             "extra_body": {},
         },
+        "evolution": {
+            "provider": "auto",
+            "model": "",
+            "base_url": "",
+            "api_key": "",
+            "timeout": 45,
+            "extra_body": {},
+        },
     },
     
     "display": {
@@ -672,8 +680,9 @@ DEFAULT_CONFIG = {
         "memory_char_limit": 2200,   # ~800 tokens at 2.75 chars/token
         "user_char_limit": 1375,     # ~500 tokens at 2.75 chars/token
         # External memory provider plugin (empty = built-in only).
-        # Set to a provider name to activate: "openviking", "mem0",
-        # "hindsight", "holographic", "retaindb", "byterover".
+        # Set to a provider name to activate: "honcho", "openviking",
+        # "mem0", "hindsight", "holographic", "retaindb", "byterover",
+        # "supermemory", "twin".
         # Only ONE external provider is allowed at a time.
         "provider": "",
     },
@@ -703,6 +712,23 @@ DEFAULT_CONFIG = {
     # always goes to ~/.hermes/skills/.
     "skills": {
         "external_dirs": [],   # e.g. ["~/.agents/skills", "/shared/team-skills"]
+    },
+
+    # Personal Evolution — Evolver GEP-style behavioral gene layer.
+    # Extracts signals from every completed turn, mutates compact Gene assets,
+    # records evolution events, and injects selected genes into future turns as
+    # ephemeral user context without changing the cached system prompt.
+    "personal_evolution": {
+        "enabled": True,
+        "strategy": "balanced",  # balanced, innovate, harden, repair-only; EVOLVE_STRATEGY also supported
+        "distillation_enabled": True,
+        "heuristic_fallback": False,
+        "max_active_genes": 12,
+        "max_gene_chars": 9000,
+        "min_signal_score": 1,
+        "decay": 0.985,
+        "drift_enabled": True,
+        "narrative_enabled": True,
     },
 
     # Honcho AI-native memory -- reads ~/.honcho/config.json as single source of truth.
@@ -1324,6 +1350,31 @@ OPTIONAL_ENV_VARS = {
         "tools": ["rl_get_results", "rl_check_status"],
         "password": True,
         "category": "tool",
+    },
+    "MIROFISH_BASE_URL": {
+        "description": "Base URL for a running MiroFish backend (e.g. http://localhost:5001)",
+        "prompt": "MiroFish backend URL",
+        "url": "https://github.com/666ghj/MiroFish",
+        "tools": ["mirofish_prepare_simulation", "mirofish_run_simulation"],
+        "password": False,
+        "category": "tool",
+    },
+    "MIROFISH_API_KEY": {
+        "description": "Optional bearer token for deployments that protect the MiroFish backend",
+        "prompt": "MiroFish API key (optional)",
+        "url": "https://github.com/666ghj/MiroFish",
+        "tools": ["mirofish_prepare_simulation", "mirofish_run_simulation"],
+        "password": True,
+        "category": "tool",
+        "advanced": True,
+    },
+    "MIROFISH_TIMEOUT": {
+        "description": "HTTP timeout in seconds for MiroFish tool calls (optional, default 30)",
+        "prompt": "MiroFish timeout seconds",
+        "tools": ["mirofish_prepare_simulation", "mirofish_run_simulation"],
+        "password": False,
+        "category": "tool",
+        "advanced": True,
     },
     "VOICE_TOOLS_OPENAI_KEY": {
         "description": "OpenAI API key for voice transcription (Whisper) and OpenAI TTS",

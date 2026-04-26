@@ -6,9 +6,9 @@ description: "Authoritative reference for Hermes built-in tools, grouped by tool
 
 # Built-in Tools Reference
 
-This page documents all 53 built-in tools in the Hermes tool registry, grouped by toolset. Availability varies by platform, credentials, and enabled toolsets.
+This page documents all 61 built-in tools in the Hermes tool registry, grouped by toolset. Availability varies by platform, credentials, and enabled toolsets.
 
-**Quick counts:** 11 browser tools, 4 file tools, 10 RL tools, 4 Home Assistant tools, 2 terminal tools, 2 web tools, 5 Feishu tools, and 15 standalone tools across other toolsets.
+**Quick counts:** 11 browser tools, 4 file tools, 10 RL tools, 8 MiroFish tools, 4 Home Assistant tools, 2 terminal tools, 2 web tools, 5 Feishu tools, and 15 standalone tools across other toolsets.
 
 :::tip MCP Tools
 In addition to built-in tools, Hermes can load tools dynamically from MCP servers. MCP tools appear with a server-name prefix (e.g., `github_create_issue` for the `github` MCP server). See [MCP Integration](/docs/user-guide/features/mcp) for configuration.
@@ -23,10 +23,12 @@ In addition to built-in tools, Hermes can load tools dynamically from MCP server
 | `browser_click` | Click on an element identified by its ref ID from the snapshot (e.g., '@e5'). The ref IDs are shown in square brackets in the snapshot output. Requires browser_navigate and browser_snapshot to be called first. | — |
 | `browser_console` | Get browser console output and JavaScript errors from the current page. Returns console.log/warn/error/info messages and uncaught JS exceptions. Use this to detect silent JavaScript errors, failed API calls, and application warnings. Requi… | — |
 | `browser_get_images` | Get a list of all images on the current page with their URLs and alt text. Useful for finding images to analyze with the vision tool. Requires browser_navigate to be called first. | — |
+| `browser_list_tabs` | List open tabs in the connected live Chrome session. Use this before navigating when the user may already have a relevant logged-in tab open. Only available when Hermes is attached to a live Chrome via CDP. | — |
 | `browser_navigate` | Navigate to a URL in the browser. Initializes the session and loads the page. Must be called before other browser tools. For simple information retrieval, prefer web_search or web_extract (faster, cheaper). Use browser tools when you need… | — |
 | `browser_press` | Press a keyboard key. Useful for submitting forms (Enter), navigating (Tab), or keyboard shortcuts. Requires browser_navigate to be called first. | — |
 | `browser_scroll` | Scroll the page in a direction. Use this to reveal more content that may be below or above the current viewport. Requires browser_navigate to be called first. | — |
 | `browser_snapshot` | Get a text-based snapshot of the current page's accessibility tree. Returns interactive elements with ref IDs (like @e1, @e2) for browser_click and browser_type. full=false (default): compact view with interactive elements. full=true: comp… | — |
+| `browser_switch_tab` | Switch to an existing tab in the connected live Chrome session. Select by index from browser_list_tabs, exact tab_id, or a title/url substring. Only available when Hermes is attached to a live Chrome via CDP. | — |
 | `browser_type` | Type text into an input field identified by its ref ID. Clears the field first, then types the new text. Requires browser_navigate and browser_snapshot to be called first. | — |
 | `browser_vision` | Take a screenshot of the current page and analyze it with vision AI. Use this when you need to visually understand what's on the page - especially useful for CAPTCHAs, visual verification challenges, complex layouts, or when the text snaps… | — |
 
@@ -119,6 +121,21 @@ Scoped to the Feishu document-comment handler. Drives comment read/write operati
 |------|-------------|----------------------|
 | `mixture_of_agents` | Route a hard problem through multiple frontier LLMs collaboratively. Makes 5 API calls (4 reference models + 1 aggregator) with maximum reasoning effort — use sparingly for genuinely difficult problems. Best for: complex math, advanced alg… | OPENROUTER_API_KEY |
 
+## `mirofish` toolset
+
+Optional graph-backed simulation tools for a running [MiroFish](https://github.com/666ghj/MiroFish) backend. Enable the `mirofish` toolset and set `MIROFISH_BASE_URL` or `twin.json` `mirofish.base_url`.
+
+| Tool | Description | Requires environment |
+|------|-------------|----------------------|
+| `mirofish_build_graph` | Start graph construction for an existing MiroFish project. | MIROFISH_BASE_URL |
+| `mirofish_prepare_simulation` | Prepare a simulation, optionally creating it first from a project id. | MIROFISH_BASE_URL |
+| `mirofish_run_simulation` | Start a prepared simulation run. | MIROFISH_BASE_URL |
+| `mirofish_simulation_status` | Read run, detailed run, prepare, or environment status. | MIROFISH_BASE_URL |
+| `mirofish_generate_report` | Start report generation for a simulation. | MIROFISH_BASE_URL |
+| `mirofish_get_report` | Fetch a report or report-generation status. | MIROFISH_BASE_URL |
+| `mirofish_interview_agents` | Interview one agent, a batch of agents, or all agents in a simulation. | MIROFISH_BASE_URL |
+| `mirofish_close_env` | Close a MiroFish simulation environment. | MIROFISH_BASE_URL |
+
 ## `rl` toolset
 
 | Tool | Description | Requires environment |
@@ -179,5 +196,3 @@ Scoped to the Feishu document-comment handler. Drives comment read/write operati
 | Tool | Description | Requires environment |
 |------|-------------|----------------------|
 | `text_to_speech` | Convert text to speech audio. Returns a MEDIA: path that the platform delivers as a voice message. On Telegram it plays as a voice bubble, on Discord/WhatsApp as an audio attachment. In CLI mode, saves to ~/voice-memos/. Voice and provider… | — |
-
-

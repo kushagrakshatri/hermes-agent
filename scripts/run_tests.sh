@@ -56,6 +56,7 @@ while IFS='=' read -r name _; do
     *_SECRET_ACCESS_KEY|*_PRIVATE_KEY|*_OAUTH_TOKEN|*_WEBHOOK_SECRET| \
     *_ENCRYPT_KEY|*_APP_SECRET|*_CLIENT_SECRET|*_CORP_SECRET|*_AES_KEY| \
     AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|FAL_KEY| \
+    MIROFISH_BASE_URL| \
     GH_TOKEN|GITHUB_TOKEN)
       unset "$name"
       ;;
@@ -101,4 +102,4 @@ exec "$PYTHON" -m pytest \
   --ignore=tests/integration \
   --ignore=tests/e2e \
   -m "not integration" \
-  "${ARGS[@]}"
+  ${ARGS+"${ARGS[@]}"}

@@ -32,7 +32,7 @@ COPILOT_REASONING_EFFORTS_O_SERIES = ["low", "medium", "high"]
 # Fallback OpenRouter snapshot used when the live catalog is unavailable.
 # (model_id, display description shown in menus)
 OPENROUTER_MODELS: list[tuple[str, str]] = [
-    ("moonshotai/kimi-k2.5",            "recommended"),
+    ("moonshotai/kimi-k2.6",            "recommended"),
     ("anthropic/claude-opus-4.7",       ""),
     ("anthropic/claude-opus-4.6",       ""),
     ("anthropic/claude-sonnet-4.6",     ""),
@@ -81,7 +81,7 @@ def _codex_curated_models() -> list[str]:
 
 _PROVIDER_MODELS: dict[str, list[str]] = {
     "nous": [
-        "moonshotai/kimi-k2.5",
+        "moonshotai/kimi-k2.6",
         "xiaomi/mimo-v2-pro",
         "anthropic/claude-opus-4.7",
         "anthropic/claude-opus-4.6",
@@ -165,13 +165,13 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         # (map to OpenRouter defaults — users get familiar picks on NIM)
         "qwen/qwen3.5-397b-a17b",
         "deepseek-ai/deepseek-v3.2",
-        "moonshotai/kimi-k2.5",
+        "moonshotai/kimi-k2.6",
         "minimaxai/minimax-m2.5",
         "z-ai/glm5",
         "openai/gpt-oss-120b",
     ],
     "kimi-coding": [
-        "kimi-k2.5",
+        "kimi-k2.6",
         "kimi-for-coding",
         "kimi-k2-thinking",
         "kimi-k2-thinking-turbo",
@@ -179,13 +179,13 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         "kimi-k2-0905-preview",
     ],
     "kimi-coding-cn": [
-        "kimi-k2.5",
+        "kimi-k2.6",
         "kimi-k2-thinking",
         "kimi-k2-turbo-preview",
         "kimi-k2-0905-preview",
     ],
     "moonshot": [
-        "kimi-k2.5",
+        "kimi-k2.6",
         "kimi-k2-thinking",
         "kimi-k2-turbo-preview",
         "kimi-k2-0905-preview",
@@ -227,7 +227,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         "trinity-mini",
     ],
     "opencode-zen": [
-        "kimi-k2.5",
+        "kimi-k2.6",
         "gpt-5.4-pro",
         "gpt-5.4",
         "gpt-5.3-codex",
@@ -264,7 +264,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         "big-pickle",
     ],
     "opencode-go": [
-        "kimi-k2.5",
+        "kimi-k2.6",
         "glm-5.1",
         "glm-5",
         "mimo-v2-pro",
@@ -299,7 +299,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
     # to https://dashscope-intl.aliyuncs.com/compatible-mode/v1 (OpenAI-compat)
     # or https://dashscope-intl.aliyuncs.com/apps/anthropic (Anthropic-compat).
     "alibaba": [
-        "kimi-k2.5",
+        "kimi-k2.6",
         "qwen3.5-plus",
         "qwen3-coder-plus",
         "qwen3-coder-next",
@@ -310,7 +310,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
     ],
     # Curated HF model list — only agentic models that map to OpenRouter defaults.
     "huggingface": [
-        "moonshotai/Kimi-K2.5",
+        "moonshotai/Kimi-K2.6",
         "Qwen/Qwen3.5-397B-A17B",
         "Qwen/Qwen3.5-35B-A3B",
         "deepseek-ai/DeepSeek-V3.2",

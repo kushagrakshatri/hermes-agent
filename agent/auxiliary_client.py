@@ -100,14 +100,14 @@ _FIXED_TEMPERATURE_MODELS: Dict[str, float] = {
 }
 
 # Moonshot's kimi-for-coding endpoint (api.kimi.com/coding) documents:
-# "k2.5 model will use a fixed value 1.0, non-thinking mode will use a fixed
+# "k2.6 model will use a fixed value 1.0, non-thinking mode will use a fixed
 # value 0.6.  Any other value will result in an error."  The same lock applies
 # to the other k2.* models served on that endpoint.  Enumerated explicitly so
 # non-coding siblings like `kimi-k2-instruct` (variable temperature, served on
 # the standard chat API and third parties) are NOT clamped.
-# Source: https://platform.kimi.ai/docs/guide/kimi-k2-5-quickstart
+# Source: https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart
 _KIMI_INSTANT_MODELS: frozenset = frozenset({
-    "kimi-k2.5",
+    "kimi-k2.6",
     "kimi-k2-turbo-preview",
     "kimi-k2-0905-preview",
 })
@@ -118,7 +118,7 @@ _KIMI_THINKING_MODELS: frozenset = frozenset({
 
 # Moonshot's public chat endpoint (api.moonshot.ai/v1) enforces a different
 # temperature contract than the Coding Plan endpoint above.  Empirically,
-# `kimi-k2.5` on the public API rejects 0.6 with HTTP 400
+# `kimi-k2.6` on the public API rejects 0.6 with HTTP 400
 # "invalid temperature: only 1 is allowed for this model" — the Coding Plan
 # lock (0.6 for non-thinking) does not apply.  `kimi-k2-turbo-preview` and the
 # thinking variants already match the Coding Plan contract on the public
@@ -127,7 +127,7 @@ _KIMI_THINKING_MODELS: frozenset = frozenset({
 # `sk-kimi-*` prefix routes to api.kimi.com/coding/v1 instead — see
 # hermes_cli/auth.py:_kimi_base_url_for_key).
 _KIMI_PUBLIC_API_OVERRIDES: Dict[str, float] = {
-    "kimi-k2.5": 1.0,
+    "kimi-k2.6": 1.0,
 }
 
 
@@ -138,12 +138,12 @@ def _fixed_temperature_for_model(
     """Return a required temperature override for models with strict contracts.
 
     Moonshot's kimi-for-coding endpoint rejects any non-approved temperature on
-    the k2.5 family.  Non-thinking variants require exactly 0.6; thinking
+    the k2.6 family.  Non-thinking variants require exactly 0.6; thinking
     variants require 1.0.  An optional ``vendor/`` prefix (e.g.
-    ``moonshotai/kimi-k2.5``) is tolerated for aggregator routings.
+    ``moonshotai/kimi-k2.6``) is tolerated for aggregator routings.
 
     When ``base_url`` points to Moonshot's public chat endpoint
-    (``api.moonshot.ai``), the contract changes for ``kimi-k2.5``: the public
+    (``api.moonshot.ai``), the contract changes for ``kimi-k2.6``: the public
     API only accepts ``temperature=1``, not 0.6.  That override takes precedence
     over the Coding Plan defaults above.
 

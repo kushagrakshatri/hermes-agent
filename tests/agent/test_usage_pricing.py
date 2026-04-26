@@ -39,6 +39,20 @@ def test_normalize_usage_openai_subtracts_cached_prompt_tokens():
     assert normalized.output_tokens == 700
 
 
+def test_normalize_usage_kimi_top_level_cached_tokens():
+    usage = SimpleNamespace(
+        prompt_tokens=3000,
+        completion_tokens=700,
+        cached_tokens=1800,
+    )
+
+    normalized = normalize_usage(usage, provider="kimi-coding", api_mode="chat_completions")
+
+    assert normalized.input_tokens == 1200
+    assert normalized.cache_read_tokens == 1800
+    assert normalized.output_tokens == 700
+
+
 def test_openrouter_models_api_pricing_is_converted_from_per_token_to_per_million(monkeypatch):
     monkeypatch.setattr(
         "agent.usage_pricing.fetch_model_metadata",

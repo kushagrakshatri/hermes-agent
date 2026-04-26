@@ -188,7 +188,7 @@ class TestOllamaCloudMergedDiscovery:
             "ollama-cloud": {
                 "models": {
                     "glm-5": {"tool_call": True},
-                    "kimi-k2.5": {"tool_call": True},
+                    "kimi-k2.6": {"tool_call": True},
                     "nemotron-3-super": {"tool_call": True},
                 }
             }
@@ -200,7 +200,7 @@ class TestOllamaCloudMergedDiscovery:
         # Live models first, then models.dev additions (deduped)
         assert result[0] == "qwen3.5:397b"  # from live API
         assert result[1] == "glm-5"          # from live API (also in models.dev)
-        assert "kimi-k2.5" in result         # from models.dev only
+        assert "kimi-k2.6" in result         # from models.dev only
         assert "nemotron-3-super" in result  # from models.dev only
         assert result.count("glm-5") == 1    # no duplicates
 

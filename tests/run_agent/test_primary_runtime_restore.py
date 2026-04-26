@@ -203,6 +203,18 @@ class TestRestorePrimaryRuntime:
 
         assert agent._use_prompt_caching == original_caching
 
+    def test_restores_prompt_cache_key_flag(self):
+        agent = _make_agent(provider="kimi-coding", base_url="https://api.moonshot.ai/v1")
+        original_cache_key = agent._use_prompt_cache_key
+
+        agent._fallback_activated = True
+        agent._use_prompt_cache_key = not original_cache_key
+
+        with patch("run_agent.OpenAI", return_value=MagicMock()):
+            agent._restore_primary_runtime()
+
+        assert agent._use_prompt_cache_key == original_cache_key
+
     def test_restore_survives_exception(self):
         """If client rebuild fails, the method returns False gracefully."""
         agent = _make_agent()

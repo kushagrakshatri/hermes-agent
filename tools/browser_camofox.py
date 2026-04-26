@@ -48,28 +48,87 @@ _vnc_url: Optional[str] = None  # cached from /health response
 _vnc_url_checked = False  # only probe once per process
 
 
+# Auto-detection cache
+_camofox_auto_detected_url: Optional[str] = None
+_camofox_auto_detection_done = False
+
+
 def get_camofox_url() -> str:
     """Return the configured Camofox server URL, or empty string."""
     return os.getenv("CAMOFOX_URL", "").rstrip("/")
 
 
+def _auto_detect_camofox() -> Optional[str]:
+    """Try to auto-detect Camofox on common localhost ports.
+    
+    Checks localhost:9377 (default Camofox port) and returns the URL
+    if the server is reachable. Results are cached for performance.
+    """
+    global _camofox_auto_detected_url, _camofox_auto_detection_done
+    
+    if _camofox_auto_detection_done:
+        return _camofox_auto_detected_url
+    
+    _camofox_auto_detection_done = True
+    
+    # Common Camofox ports to check
+    auto_detect_ports = [9377, 9378, 9379]
+    
+    for port in auto_detect_ports:
+        try:
+            url = f"http://localhost:{port}"
+            resp = requests.get(f"{url}/health", timeout=2)
+            if resp.status_code == 200:
+                try:
+                    data = resp.json()
+                    if data.get("ok") and data.get("engine") == "camoufox":
+                        _camofox_auto_detected_url = url
+                        logger.debug("Auto-detected Camofox at %s", url)
+                        return url
+                except (ValueError, KeyError):
+                    continue
+        except Exception:
+            continue
+    
+    return None
+
+
 def is_camofox_mode() -> bool:
-    """True when Camofox backend is configured and no CDP override is active.
+    """True when Camofox backend is configured or auto-detected, and no CDP override is active.
 
     When the user has explicitly connected to a live Chrome instance via
     ``/browser connect`` (which sets ``BROWSER_CDP_URL``), the CDP connection
     takes priority over Camofox so the browser tools operate on the real
     browser instead of being silently routed to the Camofox backend.
+    
+    Auto-detection: If CAMOFOX_URL is not set, will try to auto-detect
+    Camofox running on localhost:9377 (or nearby ports).
     """
     if os.getenv("BROWSER_CDP_URL", "").strip():
         return False
-    return bool(get_camofox_url())
+    
+    # Check explicit configuration first
+    if get_camofox_url():
+        return True
+    
+    # Try auto-detection
+    return _auto_detect_camofox() is not None
+
+
+def _get_effective_camofox_url() -> str:
+    """Return the effective Camofox URL (explicit config or auto-detected)."""
+    # Check explicit config first
+    explicit = get_camofox_url()
+    if explicit:
+        return explicit
+    # Fall back to auto-detection
+    return _auto_detect_camofox() or ""
 
 
 def check_camofox_available() -> bool:
     """Verify the Camofox server is reachable."""
     global _vnc_url, _vnc_url_checked
-    url = get_camofox_url()
+    url = _get_effective_camofox_url()
     if not url:
         return False
     try:
@@ -158,7 +217,7 @@ def _ensure_tab(task_id: Optional[str], url: str = "about:blank") -> Dict[str, A
     session = _get_session(task_id)
     if session["tab_id"]:
         return session
-    base = get_camofox_url()
+    base = _get_effective_camofox_url()
     resp = requests.post(
         f"{base}/tabs",
         json={
@@ -203,7 +262,7 @@ def camofox_soft_cleanup(task_id: Optional[str] = None) -> bool:
 
 def _post(path: str, body: dict, timeout: int = _DEFAULT_TIMEOUT) -> dict:
     """POST JSON to camofox and return parsed response."""
-    url = f"{get_camofox_url()}{path}"
+    url = f"{_get_effective_camofox_url()}{path}"
     resp = requests.post(url, json=body, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
@@ -211,7 +270,7 @@ def _post(path: str, body: dict, timeout: int = _DEFAULT_TIMEOUT) -> dict:
 
 def _get(path: str, params: dict = None, timeout: int = _DEFAULT_TIMEOUT) -> dict:
     """GET from camofox and return parsed response."""
-    url = f"{get_camofox_url()}{path}"
+    url = f"{_get_effective_camofox_url()}{path}"
     resp = requests.get(url, params=params, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
@@ -219,7 +278,7 @@ def _get(path: str, params: dict = None, timeout: int = _DEFAULT_TIMEOUT) -> dic
 
 def _get_raw(path: str, params: dict = None, timeout: int = _DEFAULT_TIMEOUT) -> requests.Response:
     """GET from camofox and return raw response (for binary data)."""
-    url = f"{get_camofox_url()}{path}"
+    url = f"{_get_effective_camofox_url()}{path}"
     resp = requests.get(url, params=params, timeout=timeout)
     resp.raise_for_status()
     return resp
@@ -227,7 +286,7 @@ def _get_raw(path: str, params: dict = None, timeout: int = _DEFAULT_TIMEOUT) ->
 
 def _delete(path: str, body: dict = None, timeout: int = _DEFAULT_TIMEOUT) -> dict:
     """DELETE to camofox and return parsed response."""
-    url = f"{get_camofox_url()}{path}"
+    url = f"{_get_effective_camofox_url()}{path}"
     resp = requests.delete(url, json=body, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
@@ -287,9 +346,10 @@ def camofox_navigate(url: str, task_id: Optional[str] = None) -> str:
     except requests.HTTPError as e:
         return tool_error(f"Navigation failed: {e}", success=False)
     except requests.ConnectionError:
+        effective_url = _get_effective_camofox_url() or "localhost:9377"
         return json.dumps({
             "success": False,
-            "error": f"Cannot connect to Camofox at {get_camofox_url()}. "
+            "error": f"Cannot connect to Camofox at {effective_url}. "
                      "Is the server running? Start with: npm start (in camofox-browser dir) "
                      "or: docker run -p 9377:9377 -e CAMOFOX_PORT=9377 jo-inc/camofox-browser",
         })

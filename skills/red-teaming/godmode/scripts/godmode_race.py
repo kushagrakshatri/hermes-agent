@@ -38,7 +38,7 @@ ULTRAPLINIAN_MODELS = [
     'deepseek/deepseek-chat',
     'perplexity/sonar',
     'meta-llama/llama-3.1-8b-instruct',
-    'moonshotai/kimi-k2.5',
+    'moonshotai/kimi-k2.6',
     'x-ai/grok-code-fast-1',
     'xiaomi/mimo-v2-flash',
     'openai/gpt-oss-20b',

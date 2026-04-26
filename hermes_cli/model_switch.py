@@ -328,7 +328,7 @@ def resolve_alias(
     if direct is not None:
         return (direct.provider, direct.model, key)
 
-    # Reverse lookup: match by model ID so full names (e.g. "kimi-k2.5",
+    # Reverse lookup: match by model ID so full names (e.g. "kimi-k2.6",
     # "glm-4.7") route through direct aliases instead of falling through
     # to the catalog/OpenRouter.
     for alias_name, da in DIRECT_ALIASES.items():

@@ -145,7 +145,7 @@ class TestTryActivateFallback:
 
     def test_activates_kimi_fallback(self):
         agent = _make_agent(
-            fallback_model={"provider": "kimi-coding", "model": "kimi-k2.5"},
+            fallback_model={"provider": "kimi-coding", "model": "kimi-k2.6"},
         )
         mock_client = _mock_resolve(
             api_key="sk-kimi-key",
@@ -153,10 +153,10 @@ class TestTryActivateFallback:
         )
         with patch(
             "agent.auxiliary_client.resolve_provider_client",
-            return_value=(mock_client, "kimi-k2.5"),
+            return_value=(mock_client, "kimi-k2.6"),
         ):
             assert agent._try_activate_fallback() is True
-            assert agent.model == "kimi-k2.5"
+            assert agent.model == "kimi-k2.6"
             assert agent.provider == "kimi-coding"
 
     def test_activates_minimax_fallback(self):

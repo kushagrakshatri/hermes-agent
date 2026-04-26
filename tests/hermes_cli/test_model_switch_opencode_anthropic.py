@@ -97,7 +97,7 @@ class TestOpenCodeGoV1Strip:
         result = _run_opencode_switch(
             raw_input="minimax-m2.5",
             current_provider="opencode-go",
-            current_model="kimi-k2.5",
+            current_model="kimi-k2.6",
             current_base_url="https://opencode.ai/zen/go/v1",
         )
 
@@ -123,7 +123,7 @@ class TestOpenCodeGoV1Strip:
 
     def test_switch_to_kimi_leaves_v1_intact(self):
         result = _run_opencode_switch(
-            raw_input="kimi-k2.5",
+            raw_input="kimi-k2.6",
             current_provider="opencode-go",
             current_model="glm-5",
             current_base_url="https://opencode.ai/zen/go/v1",

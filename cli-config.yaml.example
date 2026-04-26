@@ -386,6 +386,12 @@ compression:
 #                           # reasoning controls:
 #                           # extra_body:
 #                           #   enable_thinking: false
+#
+#   # Personal evolution gene distillation
+#   evolution:
+#     provider: "auto"
+#     model: ""
+#     timeout: 45
 
 # =============================================================================
 # Persistent Memory
@@ -415,6 +421,30 @@ memory:
   # lost (compression, /new, /reset, exit). Set to 0 to disable.
   # For exit/reset, only fires if the session had at least this many user turns.
   flush_min_turns: 6        # Min user turns to trigger flush on exit/reset (0 = disabled)
+
+  # External memory provider plugin (empty = built-in only).
+  # Examples: honcho, openviking, mem0, hindsight, holographic, retaindb,
+  # byterover, supermemory, twin.
+  provider: ""
+
+# =============================================================================
+# Personal Evolution
+# =============================================================================
+# Evolver GEP-style behavioral gene layer. Hermes extracts signals from every
+# completed turn, mutates compact Gene assets, records audit events, and
+# injects selected genes into future turns as ephemeral context.
+#
+personal_evolution:
+  enabled: true
+  strategy: balanced  # balanced, innovate, harden, repair-only; EVOLVE_STRATEGY also supported
+  distillation_enabled: true
+  heuristic_fallback: false
+  max_active_genes: 12
+  max_gene_chars: 9000
+  min_signal_score: 1
+  decay: 0.985
+  drift_enabled: true
+  narrative_enabled: true
 
 # =============================================================================
 # Session Reset Policy (Messaging Platforms)
@@ -622,6 +652,7 @@ platform_toolsets:
 #   skills       - skills_list, skill_view
 #   skills_hub   - skill_hub (search/install/manage from online registries — user-driven only)
 #   moa          - mixture_of_agents  (requires OPENROUTER_API_KEY)
+#   mirofish     - MiroFish graph/simulation/report tools (requires MIROFISH_BASE_URL)
 #   todo         - todo (in-memory task planning, no deps)
 #   tts          - text_to_speech  (Edge TTS free, or ELEVENLABS/OPENAI/MINIMAX/MISTRAL key)
 #   cronjob      - cronjob (create/list/update/pause/resume/run/remove scheduled tasks)
@@ -649,6 +680,7 @@ platform_toolsets:
 #   image_gen    - Image generation with FLUX (image_generate)
 #   skills       - Load skill documents (skills_list, skill_view)
 #   moa          - Mixture of Agents reasoning (mixture_of_agents)
+#   mirofish     - MiroFish graph-backed simulation, interviews, and reports
 #   todo         - Task planning and tracking for multi-step work
 #   memory       - Persistent memory across sessions (personal notes + user profile)
 #   session_search - Search and recall past conversations (FTS5 + Gemini Flash summarization)
